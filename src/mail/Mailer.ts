@@ -6,14 +6,6 @@ import * as mt from "./MailTemplates"
 
 const nodemailer = require('nodemailer');
 
-interface MailOptions {
-    from : string,
-    to: string,
-    subject: string,
-    text: string,
-    html?: string
-}
-
 let transport = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -22,16 +14,6 @@ let transport = nodemailer.createTransport({
         }
     }
 );
-
-export function sendMail(mailParams: MailOptions) {
-
-    transport.sendMail(mailParams, function(error, info) {
-        if(error) {
-            console.error(error);
-        }
-        console.log('Message %s sent: %s', info.messageId, info.response);
-    });
-}
 
 export function sendCustomerNotification(data: mt.CustomerNotification) {
     let template = new EmailTemplate(path.join(__dirname, 'templates', 'customer-notification'));
