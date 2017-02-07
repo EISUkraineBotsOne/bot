@@ -8,7 +8,7 @@ import * as moment from 'moment'
 
 export function getPolicyByNumber(policyNumber: string, callback: (optional: Optional<GetPolicyResponse.RootObject>) => void): void {
 
-    console.log('Trying to get polucy data by number:' + policyNumber);
+    console.log('Trying to get policy data by number:' + policyNumber);
     let m = moment(new Date());
     let getPolicyUrl = process.env.EIS_URL_GET_POLICY+policyNumber+'?transactionEffectiveDate=' + m.format('YYYY-MM-DD');
   
