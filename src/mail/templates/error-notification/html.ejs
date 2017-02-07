@@ -1,0 +1,6 @@
+Claim for customer <b>#<%= data.customerNumber%></b> was not created due to system error.<br/>
+Customer policy <b>#<%= data.policyNumber%></b>.
+<h4>Accident data:</h4>
+<b>Latitude</b>: <%= data.coordinates.latitude%>, <b>Longitude</b>: <%= data.coordinates.longitude%><br/>
+<a href="http://maps.google.com/?q=<%= data.coordinates.latitude%>,<%= data.coordinates.longitude %>" target="_blank">View accident location</a><br/><br/>
+<b>Date</b>: <%= data.date%>
