@@ -1,0 +1,243 @@
+Index: src/bots/Connectors.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/bots/Connectors.ts	(revision )
++++ src/bots/Connectors.ts	(revision )
+@@ -0,0 +1,12 @@
++import * as builder from 'botbuilder'
++
++export const connector = new builder.ChatConnector({
++    appId: process.env.MICROSOFT_APP_ID,
++    appPassword: process.env.MICROSOFT_APP_PASSWORD
++})
++export const serviceUrl = '/api/messages'
++export const requestHandler = connector.listen()
++
++//new builder.ConsoleConnector().listen()
++
++    
+\ No newline at end of file
+Index: src/app.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/app.ts	(revision 97f5df7718c76da60a292fc88e4b449c1fae6bb5)
++++ src/app.ts	(revision )
+@@ -1,11 +1,13 @@
+ require('dotenv').config()
+ import * as restify from 'restify'
+ import * as cds from './telematics/CollisionDetectionService'
++import * as bc from './bots/Connectors'
+ 
+-const server = restify.createServer();
++const server = restify.createServer()
+ server.listen(process.env.port || process.env.PORT || 3978, function () {
+     console.log('%s listening to %s', server.name, server.url)
+ })
+ 
+-server.use(restify.bodyParser());
+-server.post(cds.serviceUrl, cds.requestHandler);
++server.use(restify.bodyParser())
++server.post(cds.serviceUrl, cds.requestHandler)
++server.post(bc.serviceUrl, bc.requestHandler)
+Index: src/telematics/CollisionDetectionService.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/telematics/CollisionDetectionService.ts	(revision 97f5df7718c76da60a292fc88e4b449c1fae6bb5)
++++ src/telematics/CollisionDetectionService.ts	(revision )
+@@ -34,6 +34,7 @@
+ 
+ 
+ export function requestHandler(req: restify.Request, res: restify.Response, next: restify.Next): any {
++    /*
+     const collInfo: CollisionInfo = extractCollisionInfoFromRestify(req);
+     console.log('Parsed collision info: ', collInfo);
+     eis.getPolicyByNumber(collInfo.policyNumber,function (optional: Optional<GetPolicyResponse.RootObject>) {
+@@ -55,7 +56,7 @@
+             console.log('returned null');
+         }
+     });
+-
++*/
+     // eis.getEisPolicyByCollisionInfo(collInfo, (policyReply: Optional<GetPolicyResponse.RootObject>) => policyReply.map(policy => ({ policy: policy}))
+     //     .ifPresent(p => eis.getCustomerByNumber(p.policy.customerNumber, (customerReply: Optional<GetCustomerResponse.RootObject>) => customerReply
+     //             .ifPresent(customer => startCollisionDialog({
+@@ -64,7 +65,25 @@
+     //                 longitude: sms.longitude,
+     //                 latitude: sms.latitude
+     //             })))))
+-    // res.send(200, { result: 'The request is being proceed...'});
++
++    startCollisionDialog({
++        customer: {
++            individualDetails: {
++                title: 'Mr',
++                firstName: 'John',
++                lastName: 'Smith'
++            }
++        },
++        policy: {
++            policyNumber: 'A1234556'
++        },
++        collisionInfo : {
++            policyNumber : 'A1234556',
++            longitude: -112.082806,
++            latitude: 33.649766
++        }
++    } as any)
++    res.send(200, { result: 'The request is being proceed...'});
+ 
+ }
+ 
+Index: src/bots/LuisBot.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/bots/LuisBot.ts	(revision 97f5df7718c76da60a292fc88e4b449c1fae6bb5)
++++ src/bots/LuisBot.ts	(revision )
+@@ -1,15 +1,15 @@
+ import * as builder from 'botbuilder'
+-import {Optional} from "../common/Optional";
+-import {CollisionEvent, Next} from "./DataTypes";
+-import {joinNotEmpty} from "../common/ArrayUtils";
+-import {addCreateClaimDialog} from "./CommonDialogs";
++import {Optional} from "../common/Optional"
++import {CollisionEvent, Next} from "./DataTypes"
++import {joinNotEmpty} from "../common/ArrayUtils"
++import {addCreateClaimDialog} from "./CommonDialogs"
++import {connector} from './Connectors'
+ 
+-const connector = new builder.ConsoleConnector().listen();
+-export const bot = new builder.UniversalBot(connector);
++export const bot = new builder.UniversalBot(connector)
+ 
+-const model = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/d731f831-d1d4-4fe7-8faf-3ff6d652068e?subscription-key=feb93bc24bcc44f8834a305fecbf5383&verbose=true';
+-const recognizer = new builder.LuisRecognizer(model);
+-const luisDialog = new builder.IntentDialog({ recognizers: [recognizer] });
++const model = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/d731f831-d1d4-4fe7-8faf-3ff6d652068e?subscription-key=feb93bc24bcc44f8834a305fecbf5383&verbose=true'
++const recognizer = new builder.LuisRecognizer(model)
++const luisDialog = new builder.IntentDialog({ recognizers: [recognizer] })
+ 
+ bot.dialog('/', function (session: builder.Session, args: any) {
+     session.endDialog('Sorry, I only react on collision events')
+@@ -33,20 +33,20 @@
+     }
+ ])
+ 
+-bot.dialog('/luisCollisionDialog', luisDialog);
++bot.dialog('/luisCollisionDialog', luisDialog)
+ 
+ luisDialog.matches('Cancel', [
+     function (session: builder.Session, args: any) {
+         session.endDialog('Have a nice day!')
+     }
+-]);
++])
+ 
+ luisDialog.matches('Call911', [
+     function (session: builder.Session, args: any) {
+         //todo: Here we are calling to 911
+         session.endDialog('I have sent your coordinates to 911. Help is on the way.')
+     }
+-]);
++])
+ 
+ luisDialog.matches('NotifyAgent', [
+     function (session: builder.Session, args: any) {
+@@ -59,15 +59,15 @@
+             .map(e => () => session.beginDialog('/createClaimDialog'))
+             .orElse(() => session.endDialog('Have a nice day!'))()
+     }
+-]);
++])
+ 
+ luisDialog.matches('CreateClaim', [
+     function (session: builder.Session, args: any) {
+         session.beginDialog('/createClaimDialog')
+     }
+-]);
++])
+ 
+ luisDialog.onDefault(builder.DialogAction.send("I can help you call 911, notify agent "
+-    + "or initiate a claim. Could you please specify what kind of assistance you need?"));
++    + "or initiate a claim. Could you please specify what kind of assistance you need?"))
+ 
+ addCreateClaimDialog(bot)
+Index: src/bots/BotService.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/bots/BotService.ts	(revision 97f5df7718c76da60a292fc88e4b449c1fae6bb5)
++++ src/bots/BotService.ts	(revision )
+@@ -1,5 +1,5 @@
+-//import {bot} from "./LuisBot";
+-import {bot} from "./ChoiceBot";
++import {bot} from "./LuisBot";
++//import {bot} from "./ChoiceBot";
+ import {CollisionEvent} from "./DataTypes";
+ 
+ const consoleAddress = {
+Index: src/bots/ChoiceBot.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/bots/ChoiceBot.ts	(revision 97f5df7718c76da60a292fc88e4b449c1fae6bb5)
++++ src/bots/ChoiceBot.ts	(revision )
+@@ -3,8 +3,8 @@
+ import {joinNotEmpty} from '../common/ArrayUtils'
+ import {CollisionEvent, Next} from "./DataTypes";
+ import {addCreateClaimDialog} from "./CommonDialogs";
++import {connector} from './Connectors'
+ 
+-const connector = new builder.ConsoleConnector().listen()
+ export const bot = new builder.UniversalBot(connector)
+ 
+ bot.dialog('/', function (session: builder.Session, args: any) {
+Index: src/bots/DataTypes.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/bots/DataTypes.ts	(revision 97f5df7718c76da60a292fc88e4b449c1fae6bb5)
++++ src/bots/DataTypes.ts	(revision )
+@@ -1,7 +1,7 @@
+-import {GetCustomerResponse} from "../eisintegration/Customer";
+-import {GetPolicyResponse} from "../eisintegration/Policy";
++import {GetCustomerResponse} from "../eisintegration/Customer"
++import {GetPolicyResponse} from "../eisintegration/Policy"
+ import * as builder from 'botbuilder'
+-import {CreateClaimResponseSuccess, CreateClaimResponseError} from "../eisintegration/Claim";
++import {CreateClaimResponseSuccess, CreateClaimResponseError} from "../eisintegration/Claim"
+ 
+ export interface CollisionInfo {
+     policyNumber : string,
+Index: src/bots/CommonDialogs.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/bots/CommonDialogs.ts	(revision 97f5df7718c76da60a292fc88e4b449c1fae6bb5)
++++ src/bots/CommonDialogs.ts	(revision )
+@@ -1,9 +1,9 @@
+ import * as builder from 'botbuilder'
+-import {Optional} from "../common/Optional";
+-import {CollisionEvent, Next, CreateClaimResult} from "./DataTypes";
+-import {createClaim} from "../eisintegration/EisServices";
+-import {isInexact} from "../common/Utils";
+-import {CreateClaimResponseSuccess} from "../eisintegration/Claim";
++import {Optional} from "../common/Optional"
++import {CollisionEvent, Next, CreateClaimResult} from "./DataTypes"
++import {createClaim} from "../eisintegration/EisServices"
++import {isInexact} from "../common/Utils"
++import {CreateClaimResponseSuccess} from "../eisintegration/Claim"
+ 
+ export function addCreateClaimDialog(bot: builder.UniversalBot): void {
+     bot.dialog('/createClaimDialog', [
