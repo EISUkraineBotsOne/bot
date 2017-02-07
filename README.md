@@ -1,5 +1,12 @@
 # How to build, run and debug
 
+## Install gulp globally
+
+Install gulp globally:
+```
+npm install -g gulp-cli
+```
+
 ## Import dependencies
 
 After checking out sources you need to run the following command to download dependencies:
@@ -12,9 +19,9 @@ Then this command should be run only if you￿'ve removed node_modules or add/ch
 
 To build project run:
 ```
-npm run build
+gulp
 ```
-Compiled Javascript will be placed to build folder with rewritting old files. Build doesn￿'t clean the build folder, so
+Compiled Javascript will be placed to build folder with rewritting old files. Build doesn't clean the build folder, so
 if you need to do clean up before next build, just remove the build folder.
 
 ## Setting environment variables
