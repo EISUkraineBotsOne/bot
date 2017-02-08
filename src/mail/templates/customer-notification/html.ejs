@@ -1,5 +1,5 @@
 Customer <b><%= data.customerName %></b> asked to notify you about an accident for policy <b>#<%= data.policyNumber %></b>.
-<h4>Accident data: (template)</h4>
+<h4>Accident data:</h4>
 <b>Latitude</b>: <%= data.coordinates.latitude %>, <b>Longitude</b>: <%= data.coordinates.longitude %><br/>
 <a href="http://maps.google.com/?q=<%= data.coordinates.latitude %>,<%= data.coordinates.longitude %>" target="_blank">View accident location</a><br/><br/>
 <b>Date</b>: <%= data.date %>
