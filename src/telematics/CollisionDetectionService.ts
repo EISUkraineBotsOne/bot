@@ -43,36 +43,16 @@ function extractCollisionInfoFromRestify(req:restify.Request) : CollisionInfo{
 export function requestHandler(req: restify.Request, res: restify.Response, next: restify.Next): any {
     const collInfo: CollisionInfo = extractCollisionInfoFromRestify(req);
     console.log('Parsed collision info: ', collInfo);
-    eis.getPolicyByNumber(collInfo.policyNumber,function (policReply: Optional<GetPolicyResponse.RootObject>) {
-        if (policReply.isPresent()){
-            eis.getCustomerByNumber(policReply.get().customerNumber, function(customerReply: Optional<GetCustomerResponse.RootObject>){
-                if (customerReply.isPresent()){
-                    startCollisionDialog({
-                        customer : customerReply.get(),
-                        policy : policReply.get(),
-                        collisionInfo : collInfo
-                    })
-                } else {
-                    console.log('Failed to receive customer by number', policReply.get().customerNumber);
-
-                }
-            });
-            //
-        } else {
-            console.log('returned null');
-        }
-    });
-
-    // eis.getEisPolicyByCollisionInfo(collInfo, (policyReply: Optional<GetPolicyResponse.RootObject>) => policyReply.map(policy => ({ policy: policy}))
-    //     .ifPresent(p => eis.getCustomerByNumber(p.policy.customerNumber, (customerReply: Optional<GetCustomerResponse.RootObject>) => customerReply
-    //             .ifPresent(customer => startCollisionDialog({
-    //                 customer: customer,
-    //                 policy: p.policy,
-    //                 longitude: sms.longitude,
-    //                 latitude: sms.latitude
-    //             })))))
-
-    res.send(200, { result: 'The request is being proceed...'});
+    eis.getPolicyByNumber(collInfo.policyNumber, (policReply: Optional<GetPolicyResponse.RootObject>) =>
+        policReply.map(policy => () => eis.getCustomerByNumber(policy.customerNumber,
+            (customerReply: Optional<GetCustomerResponse.RootObject>) =>
+                customerReply.map(customer => () => startCollisionDialog({
+                    customer: customer,
+                    policy: policy,
+                    collisionInfo: collInfo
+                })).orElse(() => console.error('Failed to receive customer by number', policReply.get().customerNumber))()
+        )).orElse(() => console.error('returned null'))())
+    res.send(200, {result: 'The request is being proceed...'});
 }
 
 
