@@ -28,12 +28,7 @@ export function sendCustomerNotification(data: mt.CustomerNotification) {
             subject: 'Customer notification',
             text: results.text,
             html: results.html
-        }, function (error, info) {
-            if (error) {
-                console.error(error);
-            }
-            console.log('Message %s sent: %s', info.messageId, info.response);
-        })
+        }, postResponse)
     })
 }
 
@@ -50,12 +45,7 @@ export function sendClaimCreated(data : mt.ClaimCreatedNotification) {
             subject: 'Claim created',
             text: results.text,
             html: results.html
-        }, function (error, info) {
-            if(error) {
-                console.error(error);
-            }
-            console.log('Message %s sent: %s', info.messageId, info.response);
-        })
+        }, postResponse)
     })
 }
 
@@ -72,11 +62,13 @@ export function sendError(data : mt.ErrorNotification) {
             subject: 'System error occurred during conversation with customer',
             text: results.text,
             html: results.html
-        }, function (error, info) {
-            if(error) {
-                console.error(error);
-            }
-            console.log('Message %s sent: %s', info.messageId, info.response);
-        })
+        }, postResponse)
     })
+}
+
+function postResponse (error, info) {
+    if(error) {
+        console.error(error);
+    }
+    console.log('Message %s sent: %s', info.messageId, info.response);
 }
