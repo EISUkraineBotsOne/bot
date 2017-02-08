@@ -17,7 +17,21 @@ let transport = nodemailer.createTransport({
 
 export function sendCustomerNotification(data: mt.CustomerNotification) {
     let template = new EmailTemplate(path.join(__dirname, 'templates', 'customer-notification'));
-    template.render({data}, function(err, results : {text?:string, html?:string}) {
+    template.render({data}, createSendMail('Customer notification'))
+}
+
+export function sendClaimCreated(data : mt.ClaimCreatedNotification) {
+    let template = new EmailTemplate(path.join(__dirname, 'templates', 'claim-notification'));
+    template.render({data}, createSendMail('Claim created'));
+}
+
+export function sendError(data : mt.ErrorNotification) {
+    let template = new EmailTemplate(path.join(__dirname, 'templates', 'error-notification'));
+    template.render({data}, createSendMail('System error occurred during conversation with customer'));
+}
+
+function createSendMail(subject: string): (err, results : {text?:string, html?:string}) => void {
+    return (err, results : {text?:string, html?:string}) => {
         if (err) {
             console.error(err);
         }
@@ -25,45 +39,11 @@ export function sendCustomerNotification(data: mt.CustomerNotification) {
         transport.sendMail({
             from: process.env.MAIL_LOGIN,
             to: 'eisbot.hackathon@gmail.com',
-            subject: 'Customer notification',
+            subject: subject,
             text: results.text,
             html: results.html
         }, postResponse)
-    })
-}
-
-export function sendClaimCreated(data : mt.ClaimCreatedNotification) {
-    let template = new EmailTemplate(path.join(__dirname, 'templates', 'claim-notification'));
-    template.render({data}, function (err, results: {text?:string, html?:string}) {
-        if(err) {
-            console.error(err);
-        }
-
-        transport.sendMail({
-            from: process.env.MAIL_LOGIN,
-            to: 'eisbot.hackathon@gmail.com',
-            subject: 'Claim created',
-            text: results.text,
-            html: results.html
-        }, postResponse)
-    })
-}
-
-export function sendError(data : mt.ErrorNotification) {
-    let template = new EmailTemplate(path.join(__dirname, 'templates', 'error-notification'));
-    template.render({data}, function(err, results: {text?:string, html?:string}) {
-        if(err) {
-            console.error(err);
-        }
-
-        transport.sendMail({
-            from: process.env.MAIL_LOGIN,
-            to: 'eisbot.hackathon@gmail.com',
-            subject: 'System error occurred during conversation with customer',
-            text: results.text,
-            html: results.html
-        }, postResponse)
-    })
+    }
 }
 
 function postResponse (error, info) {
